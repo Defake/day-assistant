@@ -2,8 +2,11 @@ package main
 
 import (
 	"log"
+	"os"
 	"net/http"
 	"io/ioutil"
+	"github.com/Defake/day-assistant/util/env"
+	cf "github.com/Defake/day-assistant/util/controlflow"
 )
 
 func main() {
@@ -12,17 +15,15 @@ func main() {
 	// TODO: save message to a tasks array
 	// TODO: when a message is equal to "/list", reply with the tasks array
 
-	token := ""
+	env.ReadDevEnvs()
+	token := os.Getenv("token")
+
 	url := "https://api.telegram.org/bot" + token + "/getMe"
 	resp, err := http.Get(url)
-	if err != nil {
-		log.Fatalln(err)
-	}
+	cf.Fatal(err)
     
 	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatalln(err)
-	}
+	cf.Fatal(err)
     
 	sb := string(body)
 	log.Printf(sb)
