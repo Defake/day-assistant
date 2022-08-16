@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"github.com/Defake/day-assistant/util/env"
 	cf "github.com/Defake/day-assistant/util/controlflow"
+	db "github.com/Defake/day-assistant/data_access/db"
 )
 
 func main() {
@@ -18,6 +19,8 @@ func main() {
 	env.ReadDevEnvs()
 	token := os.Getenv("token")
 
+	db.ConnectDb();
+	
 	url := "https://api.telegram.org/bot" + token + "/getMe"
 	resp, err := http.Get(url)
 	cf.Fatal(err)
