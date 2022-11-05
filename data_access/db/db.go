@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/Defake/day-assistant/data_access/migrations"
-	"log"
+	// _ "log"
 
 	_ "github.com/lib/pq"
 )

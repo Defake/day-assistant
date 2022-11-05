@@ -24,7 +24,7 @@ func RunMigrations(db *sql.DB) error {
 		return err
 	}
 
-	if err := m.Up(); err != nil {
+	if err := m.Up(); err != nil && err != migrate.ErrNoChange {		
 		return err
 	}
 
