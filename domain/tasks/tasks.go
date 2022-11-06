@@ -11,12 +11,12 @@ import (
 // https://gobyexample.com/structs
 
 type Task struct {
-	id         uint64
+	Id         *uint64 `json:"id,omitempty"`
   Name       string `json:"name"`
 	IsProject  bool `json:"isProject"`
 	// weekDays   uint8 `json:"weekDays"`
 	// time       time.Time `json:"time"`
-}	
+}
 
 func (t *Task) ToJsonString() (string, error) {
 	bytes, err := json.Marshal(t)
@@ -27,35 +27,40 @@ func (t *Task) ToJsonString() (string, error) {
 	return string(bytes), nil
 }
 
+func FromJsonString(body string) *Task {
+	var task Task
+  err := json.Unmarshal([]byte(body), &task)
+	if err != nil {
+		log.Fatal(err)
+		return nil
+	}
+
+	return &task
+}
+
+func SaveTaskToDb(task *Task) error {
+	id := task.Id
+	task.Id = nil
+	err := sql.UpsertRecord("tasks", *id, task)
+	return err
+}
+
 func SaveTask() {
-	// TODO
+	taskId := uint64(1234)
+	t := &Task{Id: &taskId, Name: "Test task", IsProject: true}
+	err := SaveTaskToDb(t)
+	if err != nil {
+		log.Printf("Upsert error: %s", err)		
+	}
 
-	t := &Task{id: 1234, Name: "Test task", IsProject: true}
-	err := sql.UpsertRecord("tasks", t.id, t)
-	log.Printf("Upsert error: %s", err)
-	
-	// db.Connection.Query("")
-	// email := "admin@test.com"
-	// rows, err := db.Connection.Query("SELECT body->>'name' FROM users WHERE body->>'email' = $1", email)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// defer rows.Close()
+	tasks, err := sql.ReadRecords("tasks")
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	// var (
-	// 	name string
-	// )
-
-	// for rows.Next() {
-	// 	err := rows.Scan(&name)
-	// 	if err != nil {
-	// 		log.Fatal(err)
-	// 	}
-	// 	log.Println(name)
-	// }
-
-	// err = rows.Err()
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
+	for _, taskJson := range tasks {
+		tt := FromJsonString(taskJson)
+		log.Printf("%v\n", tt)
+	}
+ 
 }
