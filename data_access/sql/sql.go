@@ -3,9 +3,11 @@ package sql
 import (
 	db "github.com/Defake/day-assistant/data_access/db"
 	// sql "database/sql"
-	jsoni "github.com/Defake/day-assistant/data_access/json"
-	"strconv"
 	"log"
+	"strconv"
+
+	jsoni "github.com/Defake/day-assistant/data_access/json"
+	meta "github.com/Defake/day-assistant/domain/meta"
 )
 
 func UpsertRecord(table string, id uint64, body jsoni.JsonSerializable) error {
@@ -27,22 +29,33 @@ func UpsertRecord(table string, id uint64, body jsoni.JsonSerializable) error {
 	return err
 }
 
-func ReadRecords(table string) ([]string, error) {
-	rows, err := db.Connection.Query("SELECT body || jsonb_build_object('id', id) FROM " + table + ";")
+func ReadRecords(table string) ([]meta.ObjectWithMeta, error) {
+	rows, err := db.Connection.Query("SELECT " +
+		" body, " +
+		" jsonb_build_object('id', id) " +
+		"FROM " + table + ";")
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	
 	defer rows.Close()
 
-	var results []string
+	var results []meta.ObjectWithMeta
 	
 	for rows.Next() {
-		var body string
-		if err := rows.Scan(&body); err != nil {
+		var metaDataJson string
+		var bodyJson string
+		if err := rows.Scan(&bodyJson, &metaDataJson); err != nil {
 			log.Fatal(err)
 		}
-		results = append(results, body)
+
+		metaData, err := meta.FromJsonString(metaDataJson)
+		if err != nil {
+			return nil, err
+		}
+
+		obj := meta.ObjectWithMeta {Meta: *metaData, JsonBody: bodyJson}
+		results = append(results, obj)
 	}
 
 	return results, nil

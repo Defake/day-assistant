@@ -1,9 +1,9 @@
 package tasks
 
 import (
-	// "fmt"
 	sql "github.com/Defake/day-assistant/data_access/sql"
-	"log"
+	// "log"
+	log "github.com/Defake/day-assistant/util/logging"
 	"encoding/json"
 	// "time"
 )
@@ -11,8 +11,8 @@ import (
 // https://gobyexample.com/structs
 
 type Task struct {
-	Id         *uint64 `json:"id,omitempty"`
-  Name       string `json:"name"`
+	Id         uint64 `json:"id,omitempty"`
+	Name       string `json:"name"`
 	IsProject  bool `json:"isProject"`
 	// weekDays   uint8 `json:"weekDays"`
 	// time       time.Time `json:"time"`
@@ -31,36 +31,50 @@ func FromJsonString(body string) *Task {
 	var task Task
   err := json.Unmarshal([]byte(body), &task)
 	if err != nil {
-		log.Fatal(err)
+		log.Error.Println(err)
 		return nil
 	}
 
 	return &task
 }
 
+func ReadTasks() []*Task {
+	objects, err := sql.ReadRecords("tasks")
+	if err != nil {
+		log.Error.Println(err)
+	}
+
+	var result []*Task
+	for _, object := range objects {
+		body := FromJsonString(object.JsonBody)
+		result = append(result, &Task{
+			Id: object.Meta.Id,
+			Name: body.Name,
+			IsProject: body.IsProject,
+		})
+	}
+
+	return result
+}
+
 func SaveTaskToDb(task *Task) error {
-	id := task.Id
-	task.Id = nil
-	err := sql.UpsertRecord("tasks", *id, task)
+	body := Task{
+		Name: task.Name,
+		IsProject: task.IsProject}
+	err := sql.UpsertRecord("tasks", task.Id, &body)
 	return err
 }
 
 func SaveTask() {
-	taskId := uint64(1234)
-	t := &Task{Id: &taskId, Name: "Test task", IsProject: true}
+	t := &Task{Id: 1234, Name: "Test task", IsProject: true}
 	err := SaveTaskToDb(t)
 	if err != nil {
-		log.Printf("Upsert error: %s", err)		
+		log.Error.Printf("Upsert error: %s\n", err)		
 	}
 
-	tasks, err := sql.ReadRecords("tasks")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	for _, taskJson := range tasks {
-		tt := FromJsonString(taskJson)
-		log.Printf("%v\n", tt)
+	tasks := ReadTasks()
+	for _, task := range tasks {
+		log.Info.Printf("%v\n", task)
 	}
  
 }
