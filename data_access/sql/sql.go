@@ -15,11 +15,19 @@ func UpsertRecord(table string, id uint64, body jsoni.JsonSerializable) error {
 	if err != nil {
 		return err
 	}
+
+	doesHaveId := id != 0
+	var idParam string
+	var idValue string
+	if doesHaveId {
+		idParam = "id, "
+		idValue = strconv.FormatUint(id, 10) + ", "
+	}
 	
 	jsonBody := "'" + jsonString + "'"
 	query := "INSERT INTO " + table +
-		"(id, created_at, updated_at, body) " +
-		"VALUES (" + strconv.FormatUint(id, 10) + ", NOW(), NOW(), " + jsonBody + ") " +
+		"(" + idParam + "created_at, updated_at, body) " +
+		"VALUES (" + idValue + "NOW(), NOW(), " + jsonBody + ") " +
 		"ON CONFLICT (id) DO UPDATE SET " +
 		"updated_at = NOW(), " +
 		"body = " + jsonBody + ";";

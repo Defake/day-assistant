@@ -57,7 +57,7 @@ func ReadTasks() []*Task {
 	return result
 }
 
-func SaveTaskToDb(task *Task) error {
+func SaveTask(task *Task) error {
 	body := Task{
 		Name: task.Name,
 		IsProject: task.IsProject}
@@ -65,9 +65,9 @@ func SaveTaskToDb(task *Task) error {
 	return err
 }
 
-func SaveTask() {
+func SaveTaskExample() {
 	t := &Task{Id: 1234, Name: "Test task", IsProject: true}
-	err := SaveTaskToDb(t)
+	err := SaveTask(t)
 	if err != nil {
 		log.Error.Printf("Upsert error: %s\n", err)		
 	}
