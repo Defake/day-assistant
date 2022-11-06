@@ -30,7 +30,8 @@ func ConnectDb() {
 		panic(err)
 	}
 
-	defer db.Close()
+	// TODO: learn wtf to do with the connection
+	// defer db.Close()
 
 	err = db.Ping()
 	if err != nil {
